@@ -2,7 +2,7 @@
   "expo": {
     "name": "digital-wallet-mobile-app",
     "slug": "digital-wallet-mobile-app",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.samuelschoolwork.digitalwalletmobileapp"
     },
     "web": {
       "bundler": "metro",
