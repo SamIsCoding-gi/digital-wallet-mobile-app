@@ -20,6 +20,8 @@ export default function CreateAccount() {
   const [onfocuseLastName, setOnfocuseLastName] = useState(false);
   const [onfocusePhoneNumber, setOnfocusePhoneNumber] = useState(false);
   const [onfocuseConfirmPassword, setOnfocuseConfirmPassword] = useState(false);
+  const [hidePassword, setHidePassword] = useState(true);
+  const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const {
     control,
     handleSubmit,
@@ -36,12 +38,28 @@ export default function CreateAccount() {
   });
   const onSubmit = (data: any) => console.log(data);
 
+  // activate button when all fields are filled
+  const isButtonDisabled =
+    !control._defaultValues.firstName ||
+    !control._defaultValues.lastName ||
+    !control._defaultValues.phoneNumber ||
+    !control._defaultValues.Email ||
+    !control._defaultValues.Password ||
+    !control._defaultValues.confirmationPassword ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(control._defaultValues.Email) ||
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      control._defaultValues.Password
+    ) ||
+    control._defaultValues.phoneNumber.length !== 9 ||
+    !/^\d+$/.test(control._defaultValues.phoneNumber);
+
   return (
     <SafeAreaView style={styles.container}>
       <View
         style={{
           flexDirection: "row",
           alignItems: "flex-start",
+          marginTop: 10,
         }}
       >
         <Pressable
@@ -165,30 +183,71 @@ export default function CreateAccount() {
                 Phone Number
               </Text>
 
-              <Controller
-                control={control}
-                rules={{
-                  maxLength: 100,
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
+              >
+                <View
+                  style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  borderWidth: onfocusePhoneNumber ? 2 : 1,
+                  borderColor: onfocusePhoneNumber ? "black" : "grey",
+                  borderRadius: 12,
+                  marginBottom: 20,
+                  backgroundColor: "white",
+                  width: "100%",
+                  }}
+                >
+                  <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "bold",
+                    color: "black",
+                    paddingHorizontal: 5,
+                  }}
+                  >
+                  +260
+                  </Text>
+                  <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                    validate: (value) =>
+                    /^\d{9}$/.test(value) ||
+                    "Phone number must be 9 digits long.",
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
                     placeholder="Phone number"
+                    keyboardType="numeric"
+                    maxLength={9}
                     onBlur={() => setOnfocusePhoneNumber(false)}
                     onFocus={() => setOnfocusePhoneNumber(true)}
-                    onChangeText={onChange}
+                    onChangeText={(text) =>
+                      onChange(text.replace(/[^0-9]/g, ""))
+                    }
                     value={value}
                     style={{
-                      ...styles.textInput,
-                      borderWidth: onfocusePhoneNumber ? 2 : 1,
-                      borderColor: onfocusePhoneNumber ? "black" : "grey",
-                      marginBottom: 20,
+                      flex: 1,
+                      padding: 15,
+                      fontSize: 18,
+                      color: "black",
                     }}
+                    />
+                  )}
+                  name="phoneNumber"
                   />
+                </View>
+                {errors.phoneNumber && (
+                  <Text style={{ color: "red" }}>
+                  {errors.phoneNumber.message}
+                  </Text>
                 )}
-                name="phoneNumber"
-              />
-              {errors.phoneNumber && <Text>This is required.</Text>}
-
+              </View>
               <Text
                 style={{
                   color: "black",
@@ -199,28 +258,56 @@ export default function CreateAccount() {
               >
                 Password
               </Text>
-              <Controller
-                control={control}
-                rules={{
-                  maxLength: 100,
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    placeholder="Password"
-                    onBlur={() => setOnfocusePassword(false)}
-                    onFocus={() => setOnfocusePassword(true)}
-                    onChangeText={onChange}
-                    value={value}
+              >
+                <Controller
+                  control={control}
+                  rules={{
+                    maxLength: 100,
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      placeholder="Password"
+                      onBlur={() => setOnfocusePassword(false)}
+                      onFocus={() => setOnfocusePassword(true)}
+                      onChangeText={onChange}
+                      secureTextEntry={hideConfirmPassword}
+                      value={value}
+                      style={{
+                        ...styles.textInput,
+                        borderWidth: onfocusePassword ? 2 : 1,
+                        borderColor: onfocusePassword ? "black" : "grey",
+                        marginBottom: 20,
+                      }}
+                    />
+                  )}
+                  name="Password"
+                />
+                <Pressable
+                  onPress={() => setHideConfirmPassword(!hideConfirmPassword)}
+                >
+                  <Image
+                    source={
+                      hideConfirmPassword
+                        ? require("../../assets/images/hidden.png")
+                        : require("../../assets/images/shown.png")
+                    }
                     style={{
-                      ...styles.textInput,
-                      borderWidth: onfocusePassword ? 2 : 1,
-                      borderColor: onfocusePassword ? "black" : "grey",
-                      marginBottom: 20,
+                      width: 30,
+                      height: 30,
+                      position: "absolute",
+                      right: 10,
+                      top: -25,
                     }}
                   />
-                )}
-                name="Password"
-              />
+                </Pressable>
+              </View>
 
               <Text
                 style={{
@@ -232,30 +319,67 @@ export default function CreateAccount() {
               >
                 Re-type Password
               </Text>
-              <Controller
-                control={control}
-                rules={{
-                  maxLength: 100,
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    placeholder="Re-type Password"
-                    onBlur={() => setOnfocuseConfirmPassword(false)}
-                    onFocus={() => setOnfocuseConfirmPassword(true)}
-                    onChangeText={onChange}
-                    value={value}
-                    secureTextEntry={true}
-                    
+              >
+                <Controller
+                  control={control}
+                  rules={{
+                    maxLength: 100,
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      placeholder="Re-type Password"
+                      onBlur={() => setOnfocuseConfirmPassword(false)}
+                      onFocus={() => setOnfocuseConfirmPassword(true)}
+                      onChangeText={onChange}
+                      value={value}
+                      secureTextEntry={hidePassword}
+                      style={{
+                        ...styles.textInput,
+                        borderWidth: onfocuseConfirmPassword ? 2 : 1,
+                        borderColor: onfocuseConfirmPassword ? "black" : "grey",
+                        marginBottom: 20,
+                        paddingRight: 50,
+                      }}
+                    />
+                  )}
+                  name="confirmationPassword"
+                />
+                <Pressable onPress={() => setHidePassword(!hidePassword)}>
+                  <Image
+                    source={
+                      hidePassword
+                        ? require("../../assets/images/hidden.png")
+                        : require("../../assets/images/shown.png")
+                    }
                     style={{
-                      ...styles.textInput,
-                      borderWidth: onfocuseConfirmPassword ? 2 : 1,
-                      borderColor: onfocuseConfirmPassword ? "black" : "grey",
-                      marginBottom: 20,
+                      width: 30,
+                      height: 30,
+                      position: "absolute",
+                      right: 10,
+                      top: -25,
                     }}
                   />
-                )}
-                name="confirmationPassword"
-              />
+                </Pressable>
+              </View>
+              {errors.confirmationPassword && (
+                <Text>
+                  {errors.confirmationPassword.type === "required" &&
+                    "This is required."}
+                  {errors.confirmationPassword.type === "minLength" &&
+                    "Password must be at least 8 characters."}
+                  {errors.confirmationPassword.type === "validate" &&
+                    "Passwords do not match."}
+                  {errors.confirmationPassword.type === "pattern" &&
+                    "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."}
+                </Text>
+              )}
 
               <Pressable
                 style={styles.submitButton}
