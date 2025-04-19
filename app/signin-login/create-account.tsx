@@ -25,6 +25,7 @@ export default function CreateAccount() {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -38,20 +39,25 @@ export default function CreateAccount() {
   });
   const onSubmit = (data: any) => console.log(data);
 
-  // activate button when all fields are filled
-  const isButtonDisabled =
-    !control._defaultValues.firstName ||
-    !control._defaultValues.lastName ||
-    !control._defaultValues.phoneNumber ||
-    !control._defaultValues.Email ||
-    !control._defaultValues.Password ||
-    !control._defaultValues.confirmationPassword ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(control._defaultValues.Email) ||
+  const formValues = watch();
+
+  // Activate button when all fields are filled and valid
+  const submitButtonDisabled =
+    !formValues.firstName ||
+    !formValues.lastName ||
+    !formValues.phoneNumber ||
+    !formValues.Email ||
+    !formValues.Password ||
+    !formValues.confirmationPassword ||
+    formValues.Password !== formValues.confirmationPassword ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.Email) ||
     !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-      control._defaultValues.Password
+      formValues.Password
     ) ||
-    control._defaultValues.phoneNumber.length !== 9 ||
-    !/^\d+$/.test(control._defaultValues.phoneNumber);
+    formValues.phoneNumber.length !== 9 ||
+    !/^\d+$/.test(formValues.phoneNumber);
+
+  console.log("Is submitButtonDisabled:", submitButtonDisabled);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,7 +106,7 @@ export default function CreateAccount() {
               style={{
                 flex: 1,
                 alignItems: "flex-start",
-                marginHorizontal: 20,
+                marginHorizontal: 30,
               }}
             >
               <Text
@@ -180,6 +186,56 @@ export default function CreateAccount() {
                   fontWeight: "bold",
                 }}
               >
+                Email
+              </Text>
+
+              <Controller
+                control={control}
+                rules={{
+                  required: "Email is required.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Invalid email format.",
+                  },
+                }}
+                render={({
+                  field: { onChange, onBlur, value },
+                  fieldState: { error },
+                }) => (
+                  <>
+                    <TextInput
+                      placeholder="Email"
+                      onBlur={() => setOnfocuseEmail(false)}
+                      onFocus={() => setOnfocuseEmail(true)}
+                      onChangeText={onChange}
+                      value={value}
+                      style={{
+                        ...styles.textInput,
+                        borderWidth: onfocuseEmail ? 2 : 1,
+                        borderColor: error
+                          ? "red"
+                          : onfocuseEmail
+                          ? "black"
+                          : "grey",
+                        marginBottom: 20,
+                      }}
+                    />
+                    {error && (
+                      <Text style={{ color: "red" }}>{error.message}</Text>
+                    )}
+                  </>
+                )}
+                name="Email"
+              />
+
+              <Text
+                style={{
+                  color: "black",
+                  fontSize: 16,
+                  marginBottom: 10,
+                  fontWeight: "bold",
+                }}
+              >
                 Phone Number
               </Text>
 
@@ -192,59 +248,59 @@ export default function CreateAccount() {
               >
                 <View
                   style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  borderWidth: onfocusePhoneNumber ? 2 : 1,
-                  borderColor: onfocusePhoneNumber ? "black" : "grey",
-                  borderRadius: 12,
-                  marginBottom: 20,
-                  backgroundColor: "white",
-                  width: "100%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderWidth: onfocusePhoneNumber ? 2 : 1,
+                    borderColor: onfocusePhoneNumber ? "black" : "grey",
+                    borderRadius: 12,
+                    marginBottom: 20,
+                    backgroundColor: "white",
+                    width: "100%",
                   }}
                 >
                   <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    color: "black",
-                    paddingHorizontal: 5,
-                  }}
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "bold",
+                      color: "black",
+                      paddingHorizontal: 5,
+                    }}
                   >
-                  +260
+                    +260
                   </Text>
                   <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                    validate: (value) =>
-                    /^\d{9}$/.test(value) ||
-                    "Phone number must be 9 digits long.",
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <TextInput
-                    placeholder="Phone number"
-                    keyboardType="numeric"
-                    maxLength={9}
-                    onBlur={() => setOnfocusePhoneNumber(false)}
-                    onFocus={() => setOnfocusePhoneNumber(true)}
-                    onChangeText={(text) =>
-                      onChange(text.replace(/[^0-9]/g, ""))
-                    }
-                    value={value}
-                    style={{
-                      flex: 1,
-                      padding: 15,
-                      fontSize: 18,
-                      color: "black",
+                    control={control}
+                    rules={{
+                      required: true,
+                      validate: (value) =>
+                        /^\d{9}$/.test(value) ||
+                        "Phone number must be 9 digits long.",
                     }}
-                    />
-                  )}
-                  name="phoneNumber"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        placeholder="Phone number"
+                        keyboardType="numeric"
+                        maxLength={9}
+                        onBlur={() => setOnfocusePhoneNumber(false)}
+                        onFocus={() => setOnfocusePhoneNumber(true)}
+                        onChangeText={(text) =>
+                          onChange(text.replace(/[^0-9]/g, ""))
+                        }
+                        value={value}
+                        style={{
+                          flex: 1,
+                          padding: 15,
+                          fontSize: 18,
+                          color: "black",
+                        }}
+                      />
+                    )}
+                    name="phoneNumber"
                   />
                 </View>
                 {errors.phoneNumber && (
                   <Text style={{ color: "red" }}>
-                  {errors.phoneNumber.message}
+                    {errors.phoneNumber.message}
                   </Text>
                 )}
               </View>
@@ -259,17 +315,34 @@ export default function CreateAccount() {
                 Password
               </Text>
 
+              <Text
+                style={{
+                  color: "#727272",
+                  fontSize: 14,
+                  marginBottom: 10,
+                }}
+              >
+                Note: password must be atleast 8 characters long, must contain
+                an uppercase and lowerchase character, must contain a numerich
+                character and must contain a symbol/special character!
+              </Text>
+
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent: "center",
                   alignItems: "center",
+                  borderWidth: onfocusePassword ? 2 : 1,
+                  borderColor: onfocusePassword ? "black" : "grey",
+                  borderRadius: 12,
+                  marginBottom: 20,
+                  backgroundColor: "white",
+                  width: "100%",
                 }}
               >
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 100,
+                    maxLength: 150,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
@@ -280,30 +353,28 @@ export default function CreateAccount() {
                       secureTextEntry={hideConfirmPassword}
                       value={value}
                       style={{
-                        ...styles.textInput,
-                        borderWidth: onfocusePassword ? 2 : 1,
-                        borderColor: onfocusePassword ? "black" : "grey",
-                        marginBottom: 20,
+                        flex: 1,
+                        padding: 15,
+                        fontSize: 18,
+                        color: "black",
                       }}
                     />
                   )}
                   name="Password"
                 />
                 <Pressable
-                  onPress={() => setHideConfirmPassword(!hideConfirmPassword)}
+                  onPress={() => setHideConfirmPassword(!hidePassword)}
                 >
                   <Image
                     source={
-                      hideConfirmPassword
+                      hidePassword
                         ? require("../../assets/images/hidden.png")
                         : require("../../assets/images/shown.png")
                     }
                     style={{
                       width: 30,
                       height: 30,
-                      position: "absolute",
                       right: 10,
-                      top: -25,
                     }}
                   />
                 </Pressable>
@@ -319,12 +390,26 @@ export default function CreateAccount() {
               >
                 Re-type Password
               </Text>
+              <Text
+                style={{
+                  color: "#727272",
+                  fontSize: 14,
+                  marginBottom: 10,
+                }}
+              >
+                Note: Make sure password's match!
+              </Text>
 
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent: "center",
                   alignItems: "center",
+                  borderWidth: onfocusePassword ? 2 : 1,
+                  borderColor: onfocusePassword ? "black" : "grey",
+                  borderRadius: 12,
+                  marginBottom: 20,
+                  backgroundColor: "white",
+                  width: "100%",
                 }}
               >
                 <Controller
@@ -341,11 +426,10 @@ export default function CreateAccount() {
                       value={value}
                       secureTextEntry={hidePassword}
                       style={{
-                        ...styles.textInput,
-                        borderWidth: onfocuseConfirmPassword ? 2 : 1,
-                        borderColor: onfocuseConfirmPassword ? "black" : "grey",
-                        marginBottom: 20,
-                        paddingRight: 50,
+                        flex: 1,
+                        padding: 15,
+                        fontSize: 18,
+                        color: "black",
                       }}
                     />
                   )}
@@ -361,9 +445,7 @@ export default function CreateAccount() {
                     style={{
                       width: 30,
                       height: 30,
-                      position: "absolute",
                       right: 10,
-                      top: -25,
                     }}
                   />
                 </Pressable>
@@ -382,7 +464,11 @@ export default function CreateAccount() {
               )}
 
               <Pressable
-                style={styles.submitButton}
+                style={{
+                  ...styles.submitButton,
+                  backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
+                }}
+                disabled={submitButtonDisabled}
                 onPress={handleSubmit(onSubmit)}
               >
                 <Text
@@ -406,7 +492,6 @@ export default function CreateAccount() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     backgroundColor: "white",
     width: "100%",
   },
@@ -423,9 +508,9 @@ const styles = StyleSheet.create({
   submitButton: {
     alignItems: "center",
     borderRadius: 20,
-    backgroundColor: "#a2c5c9",
     padding: 15,
     marginTop: 20,
     width: "100%",
+    marginBottom: 50,
   },
 });

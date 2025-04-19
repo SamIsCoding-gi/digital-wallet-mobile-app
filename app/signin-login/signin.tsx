@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   SafeAreaView,
+  Image,
 } from "react-native";
 import { useState } from "react";
 import { useForm, Controller, set } from "react-hook-form";
@@ -14,9 +15,11 @@ import { useForm, Controller, set } from "react-hook-form";
 export default function Signin() {
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
+  const [hidePassword, setHidePassword] = useState(true);
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -25,6 +28,17 @@ export default function Signin() {
     },
   });
   const onSubmit = (data: any) => console.log(data);
+
+  const formValues = watch();
+
+  // Activate button when all fields are filled and valid
+  const submitButtonDisabled =
+    !formValues.Email ||
+    !formValues.Password ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.Email) ||
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      formValues.Password
+    )
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,7 +52,7 @@ export default function Signin() {
         Log in to your account
       </Text>
 
-      <View>
+      <View style={{ marginHorizontal: 20 }}>
         <Text
           style={{
             color: "black",
@@ -52,22 +66,33 @@ export default function Signin() {
         <Controller
           control={control}
           rules={{
-            required: true,
+            required: "Email is required.",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Invalid email format.",
+            },
           }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="Email"
-              onBlur={() => setOnfocuseEmail(false)}
-              onFocus={() => setOnfocuseEmail(true)}
-              onChangeText={onChange}
-              value={value}
-              style={{
-                ...styles.textInput,
-                borderWidth: onfocuseEmail ? 2 : 1,
-                borderColor: onfocuseEmail ? "black" : "grey",
-                marginBottom: 20,
-              }}
-            />
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <>
+              <TextInput
+                placeholder="Email"
+                onBlur={() => setOnfocuseEmail(false)}
+                onFocus={() => setOnfocuseEmail(true)}
+                onChangeText={onChange}
+                value={value}
+                maxLength={150}
+                style={{
+                  ...styles.textInput,
+                  borderWidth: onfocuseEmail ? 2 : 1,
+                  borderColor: error ? "red" : onfocuseEmail ? "black" : "grey",
+                  marginBottom: 20,
+                }}
+              />
+              {error && <Text style={{ color: "red" }}>{error.message}</Text>}
+            </>
           )}
           name="Email"
         />
@@ -83,28 +108,56 @@ export default function Signin() {
         >
           Password
         </Text>
-        <Controller
-          control={control}
-          rules={{
-            maxLength: 100,
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            borderWidth: onfocusePassword ? 2 : 1,
+            borderColor: onfocusePassword ? "black" : "grey",
+            borderRadius: 12,
+            marginBottom: 20,
+            backgroundColor: "white",
+            width: "100%",
           }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="Password"
-              onBlur={() => setOnfocusePassword(false)}
-              onFocus={() => setOnfocusePassword(true)}
-              onChangeText={onChange}
-              value={value}
+        >
+          <Controller
+            control={control}
+            rules={{
+              maxLength: 150,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder="Password"
+                onBlur={() => setOnfocusePassword(false)}
+                onFocus={() => setOnfocusePassword(true)}
+                onChangeText={onChange}
+                secureTextEntry={hidePassword}
+                value={value}
+                style={{
+                  flex: 1,
+                  padding: 15,
+                  fontSize: 18,
+                  color: "black",
+                }}
+              />
+            )}
+            name="Password"
+          />
+          <Pressable onPress={() => setHidePassword(!hidePassword)}>
+            <Image
+              source={
+                hidePassword
+                  ? require("../../assets/images/hidden.png")
+                  : require("../../assets/images/shown.png")
+              }
               style={{
-                ...styles.textInput,
-                borderWidth: onfocusePassword ? 2 : 1,
-                borderColor: onfocusePassword ? "black" : "grey",
-                marginBottom: 20,
+                width: 30,
+                height: 30,
+                right: 10,
               }}
             />
-          )}
-          name="Password"
-        />
+          </Pressable>
+        </View>
         <View
           style={{
             flexDirection: "row",
@@ -136,13 +189,10 @@ export default function Signin() {
 
         <Pressable
           style={{
-            alignItems: "center",
-            borderRadius: 20,
-            backgroundColor: "#a2c5c9",
-            padding: 15,
-            marginTop: 20,
+            ...styles.submitButton,
+            backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
           }}
-          onPress={handleSubmit(onSubmit)}
+          disabled={submitButtonDisabled}
         >
           <Text
             style={{
@@ -165,16 +215,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
-    width: "100%",
   },
   textInput: {
     padding: 15,
-    width: 300,
     height: 60,
     marginTop: 5,
     borderRadius: 12,
     backgroundColor: "white",
     color: "black",
     fontSize: 18,
+  },
+  submitButton: {
+    alignItems: "center",
+    borderRadius: 20,
+    padding: 15,
+    marginTop: 20,
+    marginBottom: 50,
   },
 });
