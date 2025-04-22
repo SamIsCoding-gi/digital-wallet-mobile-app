@@ -132,11 +132,7 @@ export default function Transactions() {
           {transactionHistorydata.length > 0 ? (
             <>
               <FlatList
-                data={
-                  showAll
-                    ? transactionHistorydata
-                    : transactionHistorydata.slice(0, 2)
-                }
+                data={transactionHistorydata}
                 keyExtractor={(item) => item.TransactionId}
                 renderItem={({ item }) => (
                   <View style={styles.transactionCard}>
@@ -169,8 +165,8 @@ export default function Transactions() {
                   </View>
                 )}
               />
-              
-              {transactionHistorydata.length > 5 && (
+
+              {/* {transactionHistorydata.length > 5 && (
                 <View style={{ alignItems: "center" }}>
                   <Pressable onPress={handleShowMore}>
                     <Text style={styles.showMoreText}>
@@ -178,8 +174,7 @@ export default function Transactions() {
                     </Text>
                   </Pressable>
                 </View>
-              )}
-
+              )} */}
             </>
           ) : (
             <View style={styles.centered}>
@@ -209,7 +204,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   centered: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
