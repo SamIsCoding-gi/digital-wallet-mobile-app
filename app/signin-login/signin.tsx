@@ -8,6 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
 import { useForm, Controller, set } from "react-hook-form";
@@ -32,22 +33,24 @@ export default function Signin() {
   });
   const onSubmit = (data: any) => {
     setLoading(true);
-    signIn(data.email, data.password);
+    signIn(data.Email, data.Password);
   };
 
   const formValues = watch();
 
   // sign in user
-  const signIn = async (email: string, password: string) => {
-    setLoading(true);
+  const signIn = async (Email: string, Password: string) => {
     try {
-      const response = await fetch("https://localhost:7248/api/users/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        "https://192.168.117.141:7248/api/users/signin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ Email, Password }),
+        }
+      );
       const data = await response.json();
       console.log(data);
       if (data.success) {
@@ -62,6 +65,7 @@ export default function Signin() {
       }
     } catch (error) {
       setErrorMessage((error as any).message);
+      console.log("Error fetching user: ", (error as any).message);
       setLoading(false);
       setErrorSigningIn(true);
     }
@@ -223,24 +227,38 @@ export default function Signin() {
           </Pressable>
         </View>
 
-        <Pressable
-          style={{
-            ...styles.submitButton,
-            backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
-          }}
-          disabled={submitButtonDisabled}
-          onPress={handleSubmit(onSubmit)}
-        >
-          <Text
+        {!loading ? (
+          <Pressable
             style={{
-              fontSize: 18,
-              fontWeight: "bold",
-              color: "black",
+              ...styles.submitButton,
+              backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
+            }}
+            disabled={submitButtonDisabled}
+            onPress={handleSubmit(onSubmit)}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                color: "black",
+              }}
+            >
+              Login
+            </Text>
+          </Pressable>
+        ) : (
+          <View
+            style={{
+              marginTop: 20,
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            Login
-          </Text>
-        </Pressable>
+            <View style={{ alignItems: "center", marginLeft: 10 }}>
+              <ActivityIndicator size="large" color="black" />
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
