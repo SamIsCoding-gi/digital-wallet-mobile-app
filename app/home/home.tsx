@@ -99,7 +99,9 @@ export default function Home() {
   const filterDate = (date: string) => {
     const now = new Date();
     const newDate = new Date(date);
-    const diffInSeconds = Math.floor((now.getTime() - newDate.getTime()) / 1000);
+    const diffInSeconds = Math.floor(
+      (now.getTime() - newDate.getTime()) / 1000
+    );
 
     if (diffInSeconds < 60) {
       return `${diffInSeconds} seconds ago`;

@@ -16,6 +16,9 @@ export default function Signin() {
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
   const [hidePassword, setHidePassword] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errorSigningIn, setErrorSigningIn] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const {
     control,
     handleSubmit,
@@ -27,9 +30,42 @@ export default function Signin() {
       Password: "",
     },
   });
-  const onSubmit = (data: any) => console.log(data);
+  const onSubmit = (data: any) => {
+    setLoading(true);
+    signIn(data.email, data.password);
+  };
 
   const formValues = watch();
+
+  // sign in user
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch("https://localhost:7248/api/users/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      console.log(data);
+      if (data.success) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("success");
+        setLoading(false);
+        window.location.href = "/";
+      } else {
+        setErrorMessage("Invalid email or password.");
+        setLoading(false);
+        setErrorSigningIn(true);
+      }
+    } catch (error) {
+      setErrorMessage((error as any).message);
+      setLoading(false);
+      setErrorSigningIn(true);
+    }
+  };
 
   // Activate button when all fields are filled and valid
   const submitButtonDisabled =
@@ -38,7 +74,7 @@ export default function Signin() {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.Email) ||
     !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
       formValues.Password
-    )
+    );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -193,6 +229,7 @@ export default function Signin() {
             backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
           }}
           disabled={submitButtonDisabled}
+          onPress={handleSubmit(onSubmit)}
         >
           <Text
             style={{
