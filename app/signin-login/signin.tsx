@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useForm, Controller, set } from "react-hook-form";
+import axios from "axios";
 
 export default function Signin() {
   const [onfocusePassword, setOnfocusePassword] = useState(false);
@@ -41,29 +42,29 @@ export default function Signin() {
   // sign in user
   const signIn = async (Email: string, Password: string) => {
     try {
-      const response = await fetch(
-        "https://192.168.117.141:7248/api/users/signin",
+      const response = await axios.post(
+        "http://10.0.2.2:5002/api/users/signin",
+        { Email, Password },
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
+            
           },
-          body: JSON.stringify({ Email, Password }),
         }
       );
-      const data = await response.json();
-      console.log(data);
+      const data = response.data;
+      console.log("Response data:", data);
       if (data.success) {
         localStorage.setItem("user", JSON.stringify(data.user));
         console.log("success");
         setLoading(false);
-        window.location.href = "/";
       } else {
         setErrorMessage("Invalid email or password.");
         setLoading(false);
         setErrorSigningIn(true);
       }
     } catch (error) {
+      console.log("Error details:", error);
       setErrorMessage((error as any).message);
       console.log("Error fetching user: ", (error as any).message);
       setLoading(false);
