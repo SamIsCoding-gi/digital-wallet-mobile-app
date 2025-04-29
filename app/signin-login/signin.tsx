@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { useForm, Controller, set } from "react-hook-form";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Signin() {
   const [onfocusePassword, setOnfocusePassword] = useState(false);
@@ -43,26 +44,20 @@ export default function Signin() {
   const signIn = async (Email: string, Password: string) => {
     try {
       const response = await axios.post(
-        "http://10.0.2.2:5002/api/users/signin",
+        "http://10.0.2.2:5001/api/users/signin",
         { Email, Password },
         {
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
-            
           },
         }
       );
       const data = response.data;
       console.log("Response data:", data);
-      if (data.success) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("success");
-        setLoading(false);
-      } else {
-        setErrorMessage("Invalid email or password.");
-        setLoading(false);
-        setErrorSigningIn(true);
-      }
+      await AsyncStorage.setItem("user", JSON.stringify(data.user));
+      console.log("success");
+      setLoading(false);
     } catch (error) {
       console.log("Error details:", error);
       setErrorMessage((error as any).message);
@@ -260,6 +255,19 @@ export default function Signin() {
             </View>
           </View>
         )}
+        {errorSigningIn && (
+          <Text
+            style={{
+              color: "red",
+              fontSize: 16,
+              fontWeight: "bold",
+              textAlign: "center",
+              marginTop: 20,
+            }}
+          >
+            Email/password is incorrect. Try again
+          </Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -286,6 +294,5 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginTop: 20,
-    marginBottom: 50,
   },
 });
