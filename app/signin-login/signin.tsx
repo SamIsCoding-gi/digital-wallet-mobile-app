@@ -14,8 +14,12 @@ import { useState } from "react";
 import { useForm, Controller, set } from "react-hook-form";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Signin() {
+  const navigation =
+    useNavigation<StackNavigationProp<{ CreateAccount: undefined }>>();
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
   const [hidePassword, setHidePassword] = useState(true);
@@ -56,7 +60,10 @@ export default function Signin() {
       const data = response.data;
       console.log("Response data:", data);
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      console.log("success");
+      // console.log(JSON.parse(AsyncStorage.getItem("user")));
+      const user = await AsyncStorage.getItem("user");
+      console.log(user);
+      setErrorSigningIn(false);
       setLoading(false);
     } catch (error) {
       console.log("Error details:", error);
@@ -205,7 +212,7 @@ export default function Signin() {
             Dont have an account?{" "}
           </Text>
           <Pressable
-            onPress={() => Alert.alert("Sign up")}
+            onPress={() => navigation.navigate("CreateAccount")}
             style={{
               backgroundColor: "white",
               padding: 5,

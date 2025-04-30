@@ -9,11 +9,28 @@ import {
   SafeAreaView,
   Image,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
+import axios from "axios";
+import uuid from "react-native-uuid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface DefaultValues {
+  firstName: string;
+  lastName: string;
+  phoneNumber: number;
+  email: string;
+  Password: string;
+  confirmPassword: string;
+}
+
 import { useForm, Controller, set } from "react-hook-form";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
 
 export default function CreateAccount() {
+  const navigation = useNavigation();
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
   const [onfocuseFirstName, setOnfocuseFirstName] = useState(false);
@@ -32,12 +49,60 @@ export default function CreateAccount() {
       firstName: "",
       lastName: "",
       phoneNumber: "",
-      Email: "",
-      Password: "",
-      confirmationPassword: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
-  const onSubmit = (data: any) => console.log(data);
+  const [errorCreatingAccount, setErrorCreatingAccount] = useState(false);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = (data: any) => {
+    setErrorCreatingAccount(false);
+    setLoading(true);
+    createAccount(data);
+  };
+
+  // creates user account
+  const createAccount = async (data: DefaultValues) => {
+    const userId = uuid.v4();
+    const dataWithId = { ...data, Id: userId };
+    console.log("Data to be sent:", dataWithId);
+    try {
+      const response = await axios.post(
+        "http://10.0.2.2:5001/api/users/create-account",
+        dataWithId,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        const responseData = response.data;
+        console.log("Response data:", responseData);
+        await AsyncStorage.setItem("user", JSON.stringify(dataWithId));
+        console.log("Created user: ", dataWithId);
+        setLoading(false);
+        navigation.goBack();
+      } else {
+        const errorText = response.data;
+        console.error("Failed to create account:", errorText);
+        setErrorMessages([errorText]);
+        setErrorCreatingAccount(true);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Failed to create account:", error);
+      setLoading(false);
+      setErrorMessages([
+        error instanceof Error ? error.message : String(error),
+      ]);
+      setErrorCreatingAccount(true);
+    }
+  };
 
   const formValues = watch();
 
@@ -46,54 +111,48 @@ export default function CreateAccount() {
     !formValues.firstName ||
     !formValues.lastName ||
     !formValues.phoneNumber ||
-    !formValues.Email ||
-    !formValues.Password ||
-    !formValues.confirmationPassword ||
-    formValues.Password !== formValues.confirmationPassword ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.Email) ||
+    !formValues.email ||
+    !formValues.password ||
+    !formValues.confirmPassword ||
+    formValues.password !== formValues.confirmPassword ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.email) ||
     !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-      formValues.Password
+      formValues.password
     ) ||
     formValues.phoneNumber.length !== 9 ||
     !/^\d+$/.test(formValues.phoneNumber);
 
-  console.log("Is submitButtonDisabled:", submitButtonDisabled);
-
   return (
     <SafeAreaView style={styles.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          marginTop: 10,
-        }}
-      >
-        <Pressable
+      <View style={styles.header}>
+        <View
           style={{
-            justifyContent: "center",
-            alignItems: "center",
-            marginRight: 80,
-            marginLeft: 15,
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            flexDirection: "row",
+            marginHorizontal: 20,
           }}
         >
-          <Image
-            source={require("../../assets/images/back.png")}
+          <Pressable onPress={() => navigation.goBack()}>
+            <Image
+              source={require("../../assets/images/back.png")}
+              style={{
+                width: 25,
+                height: 25,
+                tintColor: "black",
+              }}
+            />
+          </Pressable>
+          <Text
             style={{
-              width: 25,
-              height: 25,
-              tintColor: "black",
+              fontSize: 22,
+              fontWeight: "bold",
             }}
-          />
-        </Pressable>
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: "bold",
-            marginBottom: 30,
-          }}
-        >
-          Setup your account
-        </Text>
+          >
+            Setup your account
+          </Text>
+          <View></View>
+        </View>
       </View>
 
       <FlatList
@@ -115,6 +174,7 @@ export default function CreateAccount() {
                   fontSize: 16,
                   marginBottom: 10,
                   fontWeight: "bold",
+                  marginTop: 30,
                 }}
               >
                 Name
@@ -225,7 +285,7 @@ export default function CreateAccount() {
                     )}
                   </>
                 )}
-                name="Email"
+                name="email"
               />
 
               <Text
@@ -253,7 +313,7 @@ export default function CreateAccount() {
                     borderWidth: onfocusePhoneNumber ? 2 : 1,
                     borderColor: onfocusePhoneNumber ? "black" : "grey",
                     borderRadius: 12,
-                    marginBottom: 20,
+                    marginBottom: errors.phoneNumber ? 5 : 20,
                     backgroundColor: "white",
                     width: "100%",
                   }}
@@ -298,12 +358,12 @@ export default function CreateAccount() {
                     name="phoneNumber"
                   />
                 </View>
-                {errors.phoneNumber && (
-                  <Text style={{ color: "red" }}>
-                    {errors.phoneNumber.message}
-                  </Text>
-                )}
               </View>
+              {errors.phoneNumber && (
+                <Text style={{ color: "red", marginBottom: 20 }}>
+                  {errors.phoneNumber.message}
+                </Text>
+              )}
               <Text
                 style={{
                   color: "black",
@@ -360,7 +420,7 @@ export default function CreateAccount() {
                       }}
                     />
                   )}
-                  name="Password"
+                  name="password"
                 />
                 <Pressable
                   onPress={() => setHideConfirmPassword(!hidePassword)}
@@ -404,8 +464,8 @@ export default function CreateAccount() {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  borderWidth: onfocusePassword ? 2 : 1,
-                  borderColor: onfocusePassword ? "black" : "grey",
+                  borderWidth: onfocuseConfirmPassword ? 2 : 1,
+                  borderColor: onfocuseConfirmPassword ? "black" : "grey",
                   borderRadius: 12,
                   marginBottom: 20,
                   backgroundColor: "white",
@@ -433,7 +493,7 @@ export default function CreateAccount() {
                       }}
                     />
                   )}
-                  name="confirmationPassword"
+                  name="confirmPassword"
                 />
                 <Pressable onPress={() => setHidePassword(!hidePassword)}>
                   <Image
@@ -450,37 +510,62 @@ export default function CreateAccount() {
                   />
                 </Pressable>
               </View>
-              {errors.confirmationPassword && (
+              {errors.confirmPassword && (
                 <Text>
-                  {errors.confirmationPassword.type === "required" &&
+                  {errors.confirmPassword.type === "required" &&
                     "This is required."}
-                  {errors.confirmationPassword.type === "minLength" &&
+                  {errors.confirmPassword.type === "minLength" &&
                     "Password must be at least 8 characters."}
-                  {errors.confirmationPassword.type === "validate" &&
+                  {errors.confirmPassword.type === "validate" &&
                     "Passwords do not match."}
-                  {errors.confirmationPassword.type === "pattern" &&
+                  {errors.confirmPassword.type === "pattern" &&
                     "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."}
                 </Text>
               )}
 
-              <Pressable
-                style={{
-                  ...styles.submitButton,
-                  backgroundColor: submitButtonDisabled ? "#C3C3C3" : "#a2c5c9",
-                }}
-                disabled={submitButtonDisabled}
-                onPress={handleSubmit(onSubmit)}
-              >
-                <Text
+              {!loading ? (
+                <Pressable
                   style={{
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    color: "black",
+                    ...styles.submitButton,
+                    backgroundColor: submitButtonDisabled
+                      ? "#C3C3C3"
+                      : "#a2c5c9",
+                    marginBottom: errorCreatingAccount ? 0 : 50,
+                  }}
+                  disabled={submitButtonDisabled}
+                  onPress={handleSubmit(onSubmit)}
+                >
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "bold",
+                      color: "black",
+                    }}
+                  >
+                    Login
+                  </Text>
+                </Pressable>
+              ) : (
+                <View
+                  style={{
+                    marginTop: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: errorCreatingAccount ? 0 : 100,
+                    width: "100%",
                   }}
                 >
-                  Login
+                  <View style={{ alignItems: "center", marginLeft: 10 }}>
+                    <ActivityIndicator size="large" color="black" />
+                  </View>
+                </View>
+              )}
+
+              {errorCreatingAccount && (
+                <Text style={{ color: "red", marginTop: 5, marginBottom: 100 }}>
+                  {errorMessages.join(", ")}
                 </Text>
-              </Pressable>
+              )}
             </View>
           );
         }}
@@ -493,6 +578,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+    alignItems: "center",
+    width: "100%",
+  },
+  header: {
+    marginTop: 5,
+    borderBottomColor: "#959595",
+    borderBottomWidth: 1,
+    paddingBottom: 20,
     width: "100%",
   },
   textInput: {
@@ -511,6 +604,5 @@ const styles = StyleSheet.create({
     padding: 15,
     marginTop: 20,
     width: "100%",
-    marginBottom: 50,
   },
 });
