@@ -11,9 +11,9 @@ export default function Index() {
         flex: 1,
       }}
     >
-      {/* <Home /> */}
+      <Home />
       {/* <Transfer /> */}
-      <Signin />
+      {/* <Signin /> */}
       {/* <CreateAccount /> */}
     </View>
   );

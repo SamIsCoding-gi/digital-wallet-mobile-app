@@ -10,9 +10,10 @@ import {
   Image,
   FlatList,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-native-modal";
 import Transactions from "./transactions";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface TransactionData {
   TransactionId: string;
@@ -83,12 +84,32 @@ const defaultTransactions: TransactionData[] = [
 ];
 
 export default function Home() {
+const [user, setUser] = useState<{
+  LastName: string;
+  EmailName: string;
+  FirstName: string;
+} | null>(null);
   const [transactionHistorydata, setTransactionHistoryData] =
     useState<TransactionData[]>(defaultTransactions);
   const [loading, setLoading] = useState(false);
   const [errorLoadingTransactionHistory, setErrorLoadingTransactionHistory] =
     useState(false);
   const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    let Fetchuser = await AsyncStorage.getItem("user");
+
+    if (Fetchuser) {
+      setUser(JSON.parse(Fetchuser));
+      console.log("User found: ", user);
+    } else {
+      console.log("No user found");
+    }
+  };
 
   // shows more transactions
   const handleShowMore = () => {
@@ -128,6 +149,35 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View
+        style={{
+          justifyContent: "center",
+          marginBottom: 5,
+          marginHorizontal: 20,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "bold",
+            marginBottom: 10,
+            color: "#000",
+          }}
+        >
+          Hi {user?.FirstName || "Guest"}
+        </Text>
+        <Text
+          style={{
+            fontSize: 30,
+            fontWeight: "bold",
+            marginBottom: 20,
+            color: "#000",
+          }}
+        >
+          Your Wallet
+        </Text>
+      </View>
+
       <View style={styles.boxContainer}>
         <View style={styles.moneyContainer}>
           <View style={styles.moneyBoxContainer}>
@@ -270,7 +320,6 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
     backgroundColor: "white",
     justifyContent: "center",
   },

@@ -14,7 +14,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     getUser();
-  });
+  }, []);
 
   const getUser = async () => {
     const user = await AsyncStorage.getItem("user");
@@ -32,7 +32,7 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
       }}
-      // initialRouteName={loggedin ? "Signin" : "Home"}
+      initialRouteName={loggedin ? "Signin" : "Home"}
     >
       <Stack.Screen name="Index" component={Index} />
       <Stack.Screen name="Signin" component={Signin} />

@@ -18,8 +18,12 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
 
 export default function Signin() {
-  const navigation =
-    useNavigation<StackNavigationProp<{ CreateAccount: undefined }>>();
+  const navigation = useNavigation<
+    StackNavigationProp<{
+      CreateAccount: undefined;
+      Home: undefined;
+    }>
+  >();
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
   const [hidePassword, setHidePassword] = useState(true);
@@ -60,11 +64,13 @@ export default function Signin() {
       const data = response.data;
       console.log("Response data:", data);
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      // console.log(JSON.parse(AsyncStorage.getItem("user")));
       const user = await AsyncStorage.getItem("user");
-      console.log(user);
       setErrorSigningIn(false);
       setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
     } catch (error) {
       console.log("Error details:", error);
       setErrorMessage((error as any).message);

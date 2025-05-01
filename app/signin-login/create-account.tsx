@@ -30,7 +30,11 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
 
 export default function CreateAccount() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<
+    StackNavigationProp<{
+      Home: undefined;
+    }>
+  >();
   const [onfocusePassword, setOnfocusePassword] = useState(false);
   const [onfocuseEmail, setOnfocuseEmail] = useState(false);
   const [onfocuseFirstName, setOnfocuseFirstName] = useState(false);
@@ -86,7 +90,10 @@ export default function CreateAccount() {
         await AsyncStorage.setItem("user", JSON.stringify(dataWithId));
         console.log("Created user: ", dataWithId);
         setLoading(false);
-        navigation.goBack();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
       } else {
         const errorText = response.data;
         console.error("Failed to create account:", errorText);
