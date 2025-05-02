@@ -20,75 +20,17 @@ export interface TransactionData {
 }
 
 // Default data for UI development
-const defaultTransactions: TransactionData[] = [
-  {
-    TransactionId: "TXN12345678",
-    UserId: "U001",
-    CounterPartyFirstName: "Alice",
-    CounterPartyLastName: "Smith",
-    TransactionDate: "2024-06-01T10:15:00Z",
-    Amount: 500,
-    Type: "credit",
-  },
-  {
-    TransactionId: "TXN87654321",
-    UserId: "U001",
-    CounterPartyFirstName: "Bob",
-    CounterPartyLastName: "Johnson",
-    TransactionDate: "2024-06-02T14:30:00Z",
-    Amount: 200,
-    Type: "debit",
-  },
-  {
-    TransactionId: "TXN23456789",
-    UserId: "U001",
-    CounterPartyFirstName: "Carol",
-    CounterPartyLastName: "Williams",
-    TransactionDate: "2024-06-03T09:45:00Z",
-    Amount: 1000,
-    Type: "credit",
-  },
-  {
-    TransactionId: "TXN34567890",
-    UserId: "U001",
-    CounterPartyFirstName: "David",
-    CounterPartyLastName: "Brown",
-    TransactionDate: "2024-06-04T16:20:00Z",
-    Amount: 150,
-    Type: "debit",
-  },
-  {
-    TransactionId: "TXN45678901",
-    UserId: "U001",
-    CounterPartyFirstName: "Eve",
-    CounterPartyLastName: "Davis",
-    TransactionDate: "2024-06-05T11:10:00Z",
-    Amount: 300,
-    Type: "credit",
-  },
-  {
-    TransactionId: "TXN56789012",
-    UserId: "U001",
-    CounterPartyFirstName: "Frank",
-    CounterPartyLastName: "Miller",
-    TransactionDate: "2024-06-06T13:55:00Z",
-    Amount: 250,
-    Type: "debit",
-  },
-];
+interface TransactionsProps {
+  transactionInfo: TransactionData[];
+}
 
-export default function Transactions() {
+export default function Transactions({ transactionInfo }: TransactionsProps) {
   const [transactionHistorydata, setTransactionHistoryData] =
-    useState<TransactionData[]>(defaultTransactions);
+    useState<TransactionData[]>(transactionInfo);
   const [loading, setLoading] = useState(false);
   const [errorLoadingTransactionHistory, setErrorLoadingTransactionHistory] =
     useState(false);
   const [showAll, setShowAll] = useState(false);
-
-  // shows more transactions
-  const handleShowMore = () => {
-    setShowAll(!showAll);
-  };
 
   // filter date
   const filterDate = (date: string) => {
