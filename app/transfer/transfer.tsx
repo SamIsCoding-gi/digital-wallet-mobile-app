@@ -14,6 +14,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useEffect } from "react";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
 
 interface IFormInput {
   amountToSend: number;
@@ -75,7 +80,7 @@ const mockRecipients: recipientDataType[] = [
 
 export default function Transfer() {
   const [userData] = useState<userDataType | null>(mockUser);
-  const [wallet] = useState<WalletData | null>(mockWallet);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
   const [amountToSend, setAmountToSend] = useState<number>(0);
   const [recipientEmail, setRecipientEmail] = useState<string>("");
   const [selectedRecipient, setSelectedRecipient] =
@@ -84,12 +89,19 @@ export default function Transfer() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [moneyTransferred, setMoneyTransferred] = useState(false);
-
+  const navigation = useNavigation<StackNavigationProp<any>>();
   // Modal visibility
   const [amountModalVisible, setAmountModalVisible] = useState(true);
   const [recipientModalVisible, setRecipientModalVisible] = useState(false);
   const [confirmationModalVisible, setConfirmationModalVisible] =
     useState(false);
+  const [errorLoadingWalletData, setErrorLoadingWalletData] = useState(false);
+  const [lLoadingEmails, setLoadingEmails] = useState(false);
+  const [amountScreen, setAmountScreen] = useState(true);
+  const [moneyTransfered, setMoneyTransfered] = useState(false);
+  const [recipientScreen, setRecipientScreen] = useState(false);
+  const [noUserFound, setNoUserFound] = useState(false);
+  const [confirmationScreen, setConfirmationScreen] = useState(false);
 
   // Amount screen
   const openRecipientModal = () => {
@@ -144,19 +156,92 @@ export default function Transfer() {
     setMoneyTransferred(false);
     setAmountModalVisible(true);
   };
+
+  // get user data
+  useEffect(() => {
+    fetchWallet();
+  }, []);
+
+  const fetchWallet = async () => {
+    setLoading(true);
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        throw new Error("No logged-in user found.");
+      }
+      const parsedUser = JSON.parse(storedUser);
+      const userId = parsedUser.Id;
+      const response = await fetch(
+        `https://localhost:7248/api/users/wallet/${userId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log("current users wallet: ", data);
+        setWallet(data);
+      } else {
+        setLoading(false);
+        setErrorLoadingWalletData(true);
+      }
+    } catch (err: any) {
+      setLoading(false);
+      setErrorLoadingWalletData(true);
+    }
+    setLoading(false);
+  };
+
+  // compares password and confirms it with retyped password
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        throw new Error("No logged in user.");
+      }
+      const parsedUser = JSON.parse(storedUser);
+      const currentUserId = parsedUser.Id;
+      console.log(
+        amountToSend,
+        currentUserId,
+        data.password,
+        selectedRecipient?.Id
+      );
+      const response: Response = await fetch(
+        "https://localhost:7248/api/users/transfer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amountToSend: amountToSend,
+            userId: currentUserId,
+            password: data.password,
+            recipientId: selectedRecipient?.Id,
+          }),
+        }
+      );
+      const responseData = await response.json();
+      console.log(responseData);
+      if (responseData.success) {
+        setMoneyTransfered(true);
+        setLoading(false);
+      } else {
+        setErrorMessage(responseData.message || "Transfer failed.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage((error as any).message);
+      setLoading(false);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Transfer Money</Text>
 
       {/* Amount Modal */}
       <Modal visible={amountModalVisible} animationType="slide" transparent>
-        <Pressable
-          style={{ position: "absolute", top: 20, left: 20 }}
-          onPress={() => {
-            setAmountModalVisible(false);
-            resetTransfer();
-          }}
-        >
+        <Pressable onPress={() => navigation.goBack()}>
           <Image
             source={require("../../assets/images/back.png")}
             style={{ width: 25, height: 25 }}
