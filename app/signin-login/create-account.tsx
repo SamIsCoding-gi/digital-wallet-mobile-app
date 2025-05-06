@@ -15,6 +15,9 @@ import { useState } from "react";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useForm, Controller, set } from "react-hook-form";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
 
 interface DefaultValues {
   firstName: string;
@@ -24,10 +27,6 @@ interface DefaultValues {
   Password: string;
   confirmPassword: string;
 }
-
-import { useForm, Controller, set } from "react-hook-form";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { useNavigation } from "@react-navigation/native";
 
 export default function CreateAccount() {
   const navigation = useNavigation<
@@ -430,7 +429,7 @@ export default function CreateAccount() {
                   name="password"
                 />
                 <Pressable
-                  onPress={() => setHideConfirmPassword(!hidePassword)}
+                  onPress={() => setHidePassword(!hidePassword)}
                 >
                   <Image
                     source={

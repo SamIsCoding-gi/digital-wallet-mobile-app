@@ -10,11 +10,6 @@ export default function Index() {
       style={{
         flex: 1,
       }}
-    >
-      <Home />
-      {/* <Transfer /> */}
-      {/* <Signin /> */}
-      {/* <CreateAccount /> */}
-    </View>
+    ></View>
   );
 }

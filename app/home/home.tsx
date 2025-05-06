@@ -83,6 +83,7 @@ export default function Home() {
   const navigation = useNavigation<
     StackNavigationProp<{
       Transfer: undefined;
+      Signin: undefined;
     }>
   >();
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -105,11 +106,13 @@ export default function Home() {
   const [moneyInOut, setMoneyInOut] = useState<number[]>([]);
 
   useEffect(() => {
-    setLoading(true);
-    setGreeting(getTimeOfDayGreeting());
-
-    getUser();
-  }, []);
+    const unsubscribe = navigation.addListener("focus", () => {
+      setLoading(true);
+      setGreeting(getTimeOfDayGreeting());
+      getUser();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const getUser = async () => {
     let Fetchuser = await AsyncStorage.getItem("user");
@@ -233,6 +236,28 @@ export default function Home() {
     }
   };
 
+  const logOut = async () => {
+    try {
+      await AsyncStorage.removeItem("user");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Signin" }],
+      });
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to log out?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      { text: "OK", onPress: logOut },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <>
@@ -290,9 +315,9 @@ export default function Home() {
                   </Text>
                 </View>
 
-                <Pressable 
-                style={styles.transferButton}
-                onPress={() => navigation.navigate("Transfer")}
+                <Pressable
+                  style={styles.transferButton}
+                  onPress={() => navigation.navigate("Transfer")}
                 >
                   <Image
                     source={require("../../assets/images/arrows.png")}
@@ -398,6 +423,25 @@ export default function Home() {
                 </View>
               )}
             </View>
+            <Pressable
+              onPress={handleLogout}
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                marginTop: 20,
+                marginHorizontal: "40%",
+              }}
+            >
+              <Text
+                style={{
+                  color: "red",
+                  fontSize: 16,
+                  fontWeight: "bold",
+                }}
+              >
+                Logout
+              </Text>
+            </Pressable>
             <Modal
               animationIn={"slideInUp"}
               animationOut={"slideOutDown"}
@@ -440,7 +484,7 @@ export default function Home() {
               </View>
             </Modal>
           </>
-        )}}
+        )}
       </>
     </SafeAreaView>
   );

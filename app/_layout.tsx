@@ -32,7 +32,7 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName={loggedin ? "Signin" : "Home"}
+      initialRouteName={loggedin ? "Home" : "Signin"}
     >
       <Stack.Screen name="Index" component={Index} />
       <Stack.Screen name="Signin" component={Signin} />
