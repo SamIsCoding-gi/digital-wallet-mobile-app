@@ -2,9 +2,9 @@
   "expo": {
     "name": "digital-wallet-mobile-app",
     "slug": "digital-wallet-mobile-app",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "../assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -21,7 +21,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "../assets/images/logo.png"
     },
     "plugins": [
       "expo-router",
