@@ -136,7 +136,7 @@ export default function CreateAccount() {
             alignItems: "flex-start",
             justifyContent: "space-between",
             flexDirection: "row",
-            marginHorizontal: 20,
+            marginHorizontal: 21,
           }}
         >
           <Pressable onPress={() => navigation.goBack()}>
